@@ -74,7 +74,7 @@ docs/_build/
 # PyBuilder
 target/
 
-# Jupyter Notebook
+# Jupyter Notebook                         
 .ipynb_checkpoints
 
 # IPython
@@ -109,6 +109,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+virtualenv/
 
 # Spyder project settings
 .spyderproject
