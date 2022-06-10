@@ -19,16 +19,15 @@ class Paleta(pygame.Rect):
 
 class Pong:
     # Medidas del campo
-    _ANCHO = 800
-    _ALTO = 600
+    _ANCHO = 700
+    _ALTO = 500
     _MARGEN_LATERAL = 10
 
     # Especificaciones de la paleta
     _ANCHO_PALETA = 10
     _ALTO_PALETA = _ALTO / 5
 
-    # Especificaciones de la red
-    net = pygame.Rect(_ANCHO/2-10, 5, 10, _ALTO-10)    
+    # Especificaciones de la red        
     _NET_COLOR = (255, 0, 0)    
 
     # Color del fondo
@@ -38,6 +37,7 @@ class Pong:
         pygame.init()
 
         self.win = pygame.display.set_mode((self._ANCHO, self._ALTO), 0, 0)
+        pygame.display.set_caption('Pong')
 
         self.jugador1 = Paleta(
             self._MARGEN_LATERAL,               # coordenada x (left)
@@ -56,10 +56,10 @@ class Pong:
         self.win.fill(self._BACKGROUND_COLOR)
         pygame.draw.rect(self.win, Paleta._COLOR , self.jugador1)
         pygame.draw.rect(self.win, Paleta._COLOR, self.jugador2)
-        for i in range(10, self.net.height, self.net.height//2):
+        for i in range(10, self._ALTO, self._ALTO//10):
             if i % 2 == 1:
                 continue
-        pygame.draw.rect(self.win, self._NET_COLOR, self.net, 0, 10)
+            pygame.draw.rect(self.win, self._NET_COLOR, (self._ANCHO//2 - 5, i, 10, self._ALTO//20), 0, 10)
 
 
         pygame.display.update()        
