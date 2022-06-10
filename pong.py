@@ -13,6 +13,7 @@ import pygame
 '''
 
 class Paleta(pygame.Rect):
+    _COLOR = (255, 255, 255)
     pass
 
 
@@ -26,6 +27,7 @@ class Pong:
     _ALTO_PALETA = _ALTO / 5
 
     red = pygame.Rect(_ANCHO/2-1, 0, 3, _ALTO)
+    _RED_COLOR = (255, 0, 0)
 
     def __init__(self):
         print('Construyendo un objeto pong')
@@ -50,9 +52,9 @@ class Pong:
     def bucle_principal(self):
         print('Estoy en el bucle principal')        
         while True:
-            pygame.draw.rect(self.pantalla, (255, 255, 255), self.jugador1)
-            pygame.draw.rect(self.pantalla, (255, 255, 255), self.jugador2)
-            pygame.draw.rect(self.pantalla, (255, 255, 255), self.red)
+            pygame.draw.rect(self.pantalla, Paleta._COLOR , self.jugador1)
+            pygame.draw.rect(self.pantalla, Paleta._COLOR, self.jugador2)
+            pygame.draw.rect(self.pantalla, self._RED_COLOR, self.red)
             pygame.display.flip()
 
 if __name__ == "__main__":
