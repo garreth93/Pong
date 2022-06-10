@@ -1,3 +1,4 @@
+from pickle import FALSE
 import pygame
 
 '''
@@ -50,8 +51,13 @@ class Pong:
 
 
     def bucle_principal(self):
-        print('Estoy en el bucle principal')        
-        while True:
+        print('Estoy en el bucle principal')
+        exit_game = False        
+        while not exit_game:
+            eventos = pygame.event.get()
+            for i in eventos:
+                if i.type == pygame.QUIT:
+                    exit_game = True
             pygame.draw.rect(self.pantalla, Paleta._COLOR , self.jugador1)
             pygame.draw.rect(self.pantalla, Paleta._COLOR, self.jugador2)
             pygame.draw.rect(self.pantalla, self._RED_COLOR, self.red)
