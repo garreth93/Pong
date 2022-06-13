@@ -24,7 +24,7 @@ class Pong:
     _MARGEN_LATERAL = 10
 
     # Especificaciones de la paleta
-    _ANCHO_PALETA = 10
+    _ANCHO_PALETA = 15
     _ALTO_PALETA = _ALTO / 5
 
     # Especificaciones de la red        
@@ -54,23 +54,25 @@ class Pong:
     def draw(self):
 
         self.win.fill(self._BACKGROUND_COLOR)
-        pygame.draw.rect(self.win, Paleta._COLOR , self.jugador1)
-        pygame.draw.rect(self.win, Paleta._COLOR, self.jugador2)
+        pygame.draw.rect(self.win, Paleta._COLOR , self.jugador1, 0, 10)
+        pygame.draw.rect(self.win, Paleta._COLOR, self.jugador2, 0, 10)
         for i in range(10, self._ALTO, self._ALTO//10):
             if i % 2 == 1:
                 continue
-            pygame.draw.rect(self.win, self._NET_COLOR, (self._ANCHO//2 - 5, i, 10, self._ALTO//20), 0, 10)
+            pygame.draw.rect(self.win, self._NET_COLOR, (self._ANCHO//2 - 5, i, 5, self._ALTO//20), 0, 10)
 
 
         pygame.display.update()        
 
     def bucle_principal(self):        
         exit_game = False        
-        while not exit_game:
-            eventos = pygame.event.get()
-            for i in eventos:
+        while not exit_game:            
+            for i in pygame.event.get():
                 if i.type == pygame.QUIT:
                     exit_game = True
+                if i.type == pygame.KEYDOWN:
+                    if i.key == pygame.K_ESCAPE:
+                        exit_game = True
             
             self.draw()           
 
