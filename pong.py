@@ -1,135 +1,186 @@
-import pygame
 from random import randint
 
-# Especificaciones de la paleta
+import pygame
 
-WIDTH_PADDLE = 15
-HEIGTH_PADDLE = 100
 
-# Medidas del campo
+ALTO_PALETA = 40
+ANCHO_PALETA = 5
+VELOCIDAD_PALA = 5
 
-WIDTH = 700
-HEIGHT = 500
-MARGEN_LATERAL = 10
+ANCHO = 640
+ALTO = 480
+MARGEN_LATERAL = 40
 
-# Especificaciones de la Pelota
+TAMANYO_PELOTA = 6
+VEL_MAX_PELOTA = 5
 
-BALL_SIZE = 15
+C_NEGRO = (0, 0, 0)
+C_BLANCO = (255, 255, 255)
 
-'''
-    - algo de herencia
-    
-    - color, ancho, alto
-    - hay cosas fijas como el color y el tamaño
+FPS = 60
 
-    - metodo moverse: solo hacia arriba y hacia abajo
-    - metodo de chocar: limite para no salirse de la win
+PUNTOS_PARTIDA = 3
 
-    - metodo para interactuar con la pelota??
-'''
+class Paleta(pygame.Rect):
 
-class Paddle(pygame.Rect): 
-    _COLOR = (255, 255, 255)
-
-    UP = True
-    DOWN = False
+    ARRIBA = True
+    ABAJO = False
 
     def __init__(self, x, y):
-        super(Paddle, self).__init__(x , y, WIDTH_PADDLE, HEIGTH_PADDLE)
-        self.speed = 5
+        super(Paleta, self).__init__(x, y, ANCHO_PALETA, ALTO_PALETA)
+        self.velocidad = VELOCIDAD_PALA
 
-    def move_paddle(self, direction):
-        if direction == self.UP:
-            self.y = self.y - self.speed
+    def muevete(self, direccion):
+        if direccion == self.ARRIBA:
+            self.y = self.y - self.velocidad
             if self.y < 0:
                 self.y = 0
         else:
-            self.y = self.y + self.speed
-            if self.y > HEIGHT - HEIGTH_PADDLE:
-                self.y = HEIGHT - HEIGTH_PADDLE
-    
-class Ball(pygame.Rect):
-    BALL_COLOR = (0, 0, 255)
+            self.y = self.y + self.velocidad
+            if self.y > ALTO - ALTO_PALETA:
+                self.y = ALTO - ALTO_PALETA
+
+
+class Pelota(pygame.Rect):
+    def __init__(self):
+        super(Pelota, self).__init__(
+            (ANCHO-TAMANYO_PELOTA)/2, (ALTO-TAMANYO_PELOTA)/2,
+            TAMANYO_PELOTA, TAMANYO_PELOTA
+        )
+
+        # velocidad_x_valor_valido = False
+        # while not velocidad_x_valor_valido:
+        #     self.velocidad_x = randint(-VEL_MAX_PELOTA, VEL_MAX_PELOTA)
+        #     velocidad_x_valor_valido = self.velocidad_x != 0
+
+        self.velocidad_x = 0
+        while self.velocidad_x == 0:
+            self.velocidad_x = randint(-VEL_MAX_PELOTA, VEL_MAX_PELOTA)
+
+        self.velocidad_y = randint(-VEL_MAX_PELOTA, VEL_MAX_PELOTA)
+
+    def muevete(self):
+        self.x = self.x + self.velocidad_x
+        self.y = self.y + self.velocidad_y
+        if self.y < 0:
+            self.y = 0
+            self.velocidad_y = -self.velocidad_y
+        if self.y > ALTO-TAMANYO_PELOTA:
+            self.y = ALTO-TAMANYO_PELOTA
+            self.velocidad_y = -self.velocidad_y
+
+
+class Marcador:
+    """
+    - ¿qué?    guardar números, pintar
+    - ¿dónde?  ------
+    - ¿cómo?   ------
+    - ¿cuándo? cuando la pelota sale del campo
+    """
 
     def __init__(self):
-        super(Ball, self).__init__((WIDTH -BALL_SIZE)/2, (HEIGHT-BALL_SIZE)/2,
-                BALL_SIZE, BALL_SIZE)
-        self.speed_x = randint(-5, 5)
-        self.speed_y = randint(-5, 5)
+        self.inicializar()
 
-    def ball_move(self):
-        self.y = self.y + self.speed_y
-        self.x = self.x + self.speed_x
- 
+    def comprobar_ganador(self):
+        if self.partida_finalizada:
+            return True
+        if self.valor[0] == PUNTOS_PARTIDA:
+            print("Ha ganado el jugador 1")
+            self.partida_finalizada = True
+        elif self.valor[1] == PUNTOS_PARTIDA:
+            print("Ha ganado el jugador 2")
+            self.partida_finalizada = True
+        return self.partida_finalizada
+
+    def inicializar(self):
+        self.valor = [0, 0]
+        self.partida_finalizada = False
+
 class Pong:
 
-    # Especificaciones de la red        
-    _NET_COLOR = (255, 0, 0)    
-
-    # Color del fondo
-    _BACKGROUND_COLOR = (0, 255, 0)
-
-    def __init__(self):        
+    def __init__(self):
         pygame.init()
-
-        self.win = pygame.display.set_mode((WIDTH, HEIGHT), 0, 0)
+        self.pantalla = pygame.display.set_mode((ANCHO, ALTO))
         self.clock = pygame.time.Clock()
-        pygame.display.set_caption('Pong')
 
-        self.player1 = Paddle(
+        self.jugador1 = Paleta(
             MARGEN_LATERAL,               # coordenada x (left)
-            (HEIGHT - HEIGTH_PADDLE)/2)       # coordenada y (top)
-                             
+            (ALTO-ALTO_PALETA)/2)         # coordenada y (top)
 
-        self.player2 = Paddle(
-            WIDTH - WIDTH_PADDLE - MARGEN_LATERAL,
-            (HEIGHT - HEIGTH_PADDLE )/2)
+        self.jugador2 = Paleta(
+            ANCHO-MARGEN_LATERAL-ANCHO_PALETA,
+            (ALTO-ALTO_PALETA)/2)
 
-        self.ball = Ball()
-        
+        self.pelota = Pelota()
+        self.marcador = Marcador()
 
-    def draw(self):
+    def bucle_principal(self):
+        salir = False
+        while not salir:
+            for evento in pygame.event.get():
+                if evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_ESCAPE:
+                        print("Adiós, te has escapado")
+                        salir = True
+                    if evento.key == pygame.K_r:
+                        print("Iniciamos nueva partida")
+                        self.marcador.inicializar()
+                if evento.type == pygame.QUIT:
+                    salir = True
 
-        self.win.fill(self._BACKGROUND_COLOR)
-        pygame.draw.rect(self.win, Paddle._COLOR , self.player1, 0, 10)
-        pygame.draw.rect(self.win, Paddle._COLOR, self.player2, 0, 10)
-        for i in range(10, HEIGHT, HEIGHT//10):
-            if i % 2 == 1:
-                continue
-            pygame.draw.rect(self.win, self._NET_COLOR, (WIDTH//2 - 5, i, 5, HEIGHT//20), 0, 10)
-        
-        pygame.draw.rect(self.win, Ball.BALL_COLOR, self.ball, 0, 10)
+            estado_teclas = pygame.key.get_pressed()
+            if estado_teclas[pygame.K_a]:
+                self.jugador1.muevete(Paleta.ARRIBA)
+            if estado_teclas[pygame.K_z]:
+                self.jugador1.muevete(Paleta.ABAJO)
+            if estado_teclas[pygame.K_UP]:
+                self.jugador2.muevete(Paleta.ARRIBA)
+            if estado_teclas[pygame.K_DOWN]:
+                self.jugador2.muevete(Paleta.ABAJO)
 
-        pygame.display.update()        
-        self.clock.tick(60)
-    # BUCLE PRINCIPAL DEL JUEGO
+            if not self.marcador.comprobar_ganador():
+                self.pelota.muevete()
+                self.colision_paletas()
+                self.comprobar_punto()
 
-    def main_cicle(self):        
-        exit_game = False        
-        while not exit_game:            
-            for i in pygame.event.get():
-                if i.type == pygame.QUIT:
-                    exit_game = True
-                if i.type == pygame.KEYDOWN:
-                    if i.key == pygame.K_ESCAPE:
-                        exit_game = True
-                    
-            key_state = pygame.key.get_pressed()
-            if key_state[pygame.K_a]:
-                self.player1.move_paddle(Paddle.UP)
-            if key_state[pygame.K_z]:
-                self.player1.move_paddle(Paddle.DOWN)
-            if key_state[pygame.K_UP]:
-                self.player2.move_paddle(Paddle.UP)
-            if key_state[pygame.K_DOWN]:
-                self.player2.move_paddle(Paddle.DOWN)
-            
-            self.ball.ball_move()
- 
-            self.draw()           
+            self.pantalla.fill(C_NEGRO)
+            pygame.draw.line(self.pantalla, C_BLANCO, (ANCHO/2, 0), (ANCHO/2, ALTO))
+            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador1)
+            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador2)
+            pygame.draw.rect(self.pantalla, C_BLANCO, self.pelota)
+
+            # refresco de pantalla
+            pygame.display.flip()
+            self.clock.tick(FPS)
+
+    def colision_paletas(self):
+        """
+        Comprueba si la pelota ha colisionado con una de las paletas
+        y le cambia la dirección. (pygame.Rect.colliderect(Rect))
+        """
+        if pygame.Rect.colliderect(self.pelota, self.jugador1) or pygame.Rect.colliderect(self.pelota, self.jugador2):
+            self.pelota.velocidad_x = -self.pelota.velocidad_x
+            self.pelota.velocidad_y = randint(-VEL_MAX_PELOTA, VEL_MAX_PELOTA)
+
+    def comprobar_punto(self):
+        if self.pelota.x < 0:
+            self.marcador.valor[1] = self.marcador.valor[1] + 1
+            print(f"El nuevo marcador es {self.marcador.valor}")
+            self.pelota.velocidad_x = randint(-VEL_MAX_PELOTA, -1)
+            self.iniciar_punto()
+        elif self.pelota.x > ANCHO:
+            self.marcador.valor[0] = self.marcador.valor[0] + 1
+            print(f"El nuevo marcador es {self.marcador.valor}")
+            self.pelota.velocidad_x = randint(1, VEL_MAX_PELOTA)
+            self.iniciar_punto()
+
+    def iniciar_punto(self):
+        self.pelota.x = (ANCHO - TAMANYO_PELOTA)/2
+        self.pelota.y = (ALTO - TAMANYO_PELOTA)/2
+        self.pelota.velocidad_y = randint(-VEL_MAX_PELOTA, VEL_MAX_PELOTA)
+
+
 
 if __name__ == "__main__":
-    game = Pong()
-    game.main_cicle() 
-
-        
+    juego = Pong()
+    juego.bucle_principal()
