@@ -1,19 +1,21 @@
-from random import randint
+from random import randint 
 
 import pygame
 
 
-ALTO_PALETA = 40
-ANCHO_PALETA = 5
+ALTO_PALETA = 70
+ANCHO_PALETA = 15
 VELOCIDAD_PALA = 5
 
 ANCHO = 640
 ALTO = 480
 MARGEN_LATERAL = 40
 
-TAMANYO_PELOTA = 6
+TAMANYO_PELOTA = 10
 VEL_MAX_PELOTA = 5
+COLOR_PELOTA = (215, 227, 20) 
 
+FONDO_CAMPO = (27, 136, 43)
 C_NEGRO = (0, 0, 0)
 C_BLANCO = (255, 255, 255)
 
@@ -79,16 +81,18 @@ class Marcador:
     """
 
     def __init__(self):
+        self.letra_marcador = pygame.font.SysFont('roboto', 100)                    
+        self.letra_mensaje = pygame.font.SysFont('roboto', 50 )
         self.inicializar()
-
+        
     def comprobar_ganador(self):
         if self.partida_finalizada:
             return True
         if self.valor[0] == PUNTOS_PARTIDA:
-            print("Ha ganado el jugador 1")
+            self.mensaje_ganador = "Ha ganado el jugador 1"
             self.partida_finalizada = True
         elif self.valor[1] == PUNTOS_PARTIDA:
-            print("Ha ganado el jugador 2")
+            self.mensaje_ganador = "Ha ganado el jugador 2"
             self.partida_finalizada = True
         return self.partida_finalizada
 
@@ -96,12 +100,32 @@ class Marcador:
         self.valor = [0, 0]
         self.partida_finalizada = False
 
+    def pintar(self, pantalla):
+        texto = pygame.font.Font.render(self.letra_marcador, str(self.valor[0]), True, C_BLANCO)
+        pos_x = (ANCHO/2-MARGEN_LATERAL-ANCHO_PALETA)/2-texto.get_width()/2 + MARGEN_LATERAL + ANCHO_PALETA
+        pos_y = MARGEN_LATERAL
+        pygame.Surface.blit(pantalla, texto, (pos_x, pos_y))
+
+        texto = pygame.font.Font.render(self.letra_marcador, str(self.valor[1]), True, C_BLANCO)
+        pos_x = (ANCHO/2-MARGEN_LATERAL-ANCHO_PALETA)/2-texto.get_width()/2 + ANCHO/2
+        pos_y = MARGEN_LATERAL
+        pygame.Surface.blit(pantalla, texto, (pos_x, pos_y))
+
+        if self.partida_finalizada:            
+            texto = pygame.font.Font.render(self.letra_mensaje, self.mensaje_ganador, True, C_BLANCO)
+            pos_x = ANCHO/2 - texto.get_width()/2 
+            pos_y = ALTO/2 - texto.get_height()/2 - MARGEN_LATERAL
+            pygame.Surface.blit(pantalla, texto, (pos_x, pos_y))
+
+
 class Pong:
 
     def __init__(self):
         pygame.init()
         self.pantalla = pygame.display.set_mode((ANCHO, ALTO))
         self.clock = pygame.time.Clock()
+
+        # Vamos a prepararnos para pintar texto
 
         self.jugador1 = Paleta(
             MARGEN_LATERAL,               # coordenada x (left)
@@ -115,6 +139,7 @@ class Pong:
         self.marcador = Marcador()
 
     def bucle_principal(self):
+
         salir = False
         while not salir:
             for evento in pygame.event.get():
@@ -143,11 +168,12 @@ class Pong:
                 self.colision_paletas()
                 self.comprobar_punto()
 
-            self.pantalla.fill(C_NEGRO)
+            self.pantalla.fill(FONDO_CAMPO)            
             pygame.draw.line(self.pantalla, C_BLANCO, (ANCHO/2, 0), (ANCHO/2, ALTO))
-            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador1)
-            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador2)
-            pygame.draw.rect(self.pantalla, C_BLANCO, self.pelota)
+            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador1, 0, 10)
+            pygame.draw.rect(self.pantalla, C_BLANCO, self.jugador2, 0, 10)
+            pygame.draw.rect(self.pantalla, COLOR_PELOTA, self.pelota, 0, 10)   
+            self.marcador.pintar(self.pantalla)
 
             # refresco de pantalla
             pygame.display.flip()
